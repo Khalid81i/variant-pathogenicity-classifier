@@ -4,6 +4,10 @@ import pandas as pd
 import altair as alt
 import streamlit as st
 from vcf_classify import parse_vcf, classify
+import os, urllib.request
+
+DB_URL = "https://github.com/Khalid81i/variant-pathogenicity-classifier/releases/download/v1.0/clinvar.db"
+MAX_VARIANTS = 5000
 
 st.set_page_config(page_title="Variant Pathogenicity Classifier",
                    page_icon="🧬", layout="wide")
@@ -29,6 +33,9 @@ def load_model():
 
 @st.cache_resource
 def get_conn():
+    if not os.path.exists("clinvar.db"):
+        with st.spinner("First-time setup: downloading the ClinVar database (~330 MB)\u2026"):
+            urllib.request.urlretrieve(DB_URL, "clinvar.db")
     return sqlite3.connect("clinvar.db", check_same_thread=False)
 
 def color_scale():
@@ -61,7 +68,7 @@ try:
     model, columns = load_model()
     conn = get_conn()
 except Exception as e:
-    st.error(f"Could not load clinvar.db / model.joblib \u2014 are they in this folder?\n\n{e}")
+    st.error(f"Could not load clinvar.db / model.joblib:\n\n{e}")
     st.stop()
 
 up = st.file_uploader("Upload a VCF file (.vcf or .vcf.gz)", type=["vcf", "gz"])
@@ -74,8 +81,14 @@ if vcf_df.empty:
     st.error("No variants parsed. Is this a valid VCF (tab-separated, with data rows)?")
     st.stop()
 
+truncated = len(vcf_df) > MAX_VARIANTS
+if truncated:
+    vcf_df = vcf_df.head(MAX_VARIANTS)
+
 with st.spinner(f"Classifying {len(vcf_df):,} variants..."):
     res = classify(vcf_df, conn, model, columns, lo=lo, hi=hi)
+if truncated:
+    st.warning(f"Large file \u2014 showing the first {MAX_VARIANTS:,} variants (demo cap).")
 
 st.markdown("### Summary")
 c = res['label'].value_counts()
