@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+clinvar.db
+variant_summary.txt.gz
+.DS_Store

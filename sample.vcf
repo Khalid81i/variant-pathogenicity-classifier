@@ -1,0 +1,10 @@
+##fileformat=VCFv4.2
+##source=sample_for_testing
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+7	117559590	.	G	A	.	.	.
+17	43093000	.	A	G	.	.	.
+13	32339000	.	GA	G	.	.	.
+1	45331556	.	C	T,G	.	.	.
+9	99999	rs_test	A	T	.	.	.
+2	21010000	.	C	T	.	.	.
+X	15000000	.	T	C	.	.	.
